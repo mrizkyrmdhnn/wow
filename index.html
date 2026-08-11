@@ -1,602 +1,135 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pengvisualisasi Datamu</title>
-  <meta name="description"
-    content="Dashboard inventaris jaringan: unggah data CSV/XLSX dan visualisasikan perangkat, status, dan metrik secara interaktif." />
-  <link rel="stylesheet" href="style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Maafin Aku Ya, Sayang ❤️</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@300;400;500;600;700&family=Sacramento&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+    <!-- Background Canvas for Floating Hearts -->
+    <canvas id="bg-canvas"></canvas>
+    <!-- Canvas for Fireworks & Confetti -->
+    <canvas id="confetti-canvas"></canvas>
 
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!-- HALAMAN LOGIN/REGISTER                                             -->
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <div class="auth-overlay" id="authOverlay">
-    <div class="auth-bg">
-      <div class="auth-bg-orb auth-bg-orb--1"></div>
-      <div class="auth-bg-orb auth-bg-orb--2"></div>
-      <div class="auth-bg-orb auth-bg-orb--3"></div>
-    </div>
+    <!-- Music Control Float Button -->
+    <button id="music-toggle" class="music-btn" aria-label="Toggle Audio">
+        <span id="music-icon">🎵</span>
+    </button>
 
-    <div class="auth-card" id="authCard">
-      <div class="auth-logo">
-        <h1 class="auth-app-name">Pengvisualisasi Datamu</h1>
-        <p class="auth-app-tagline">Visualisasikan data Anda dengan mudah</p>
-      </div>
-
-      <!-- Tab Login / Register -->
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Masuk</button>
-        <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Daftar</button>
-      </div>
-
-      <!-- Form Login -->
-      <form class="auth-form" id="loginForm" autocomplete="off">
-        <div class="auth-field">
-          <label class="auth-label" for="loginUsername">Username</label>
-          <input class="auth-input" type="text" id="loginUsername" placeholder="Masukkan username..."
-            autocomplete="username" required />
-        </div>
-        <div class="auth-field">
-          <label class="auth-label" for="loginPassword">Password</label>
-          <div class="auth-input-wrap">
-            <input class="auth-input" type="password" id="loginPassword" placeholder="Masukkan password..."
-              autocomplete="current-password" required />
-            <button type="button" class="auth-eye-btn" id="loginEyeBtn"
-              onclick="togglePasswordVisibility('loginPassword', 'loginEyeBtn')">👁</button>
-          </div>
-        </div>
-        <div class="auth-error hidden" id="loginError"></div>
-        <button type="submit" class="auth-submit-btn" id="loginBtn">
-          <span class="auth-btn-text">Masuk</span>
-          <span class="auth-btn-spinner hidden" id="loginSpinner">⏳</span>
-        </button>
-        <p class="auth-switch-text">Belum punya akun? <a href="#" onclick="switchAuthTab('register')">Daftar
-            sekarang</a></p>
-      </form>
-
-      <!-- Form Register -->
-      <form class="auth-form hidden" id="registerForm" autocomplete="off">
-        <div class="auth-field">
-          <label class="auth-label" for="regUsername">Username</label>
-          <input class="auth-input" type="text" id="regUsername" placeholder="Buat username (min. 3 karakter)..."
-            required />
-        </div>
-        <div class="auth-field">
-          <label class="auth-label" for="regEmail">Email <span class="auth-optional">(opsional)</span></label>
-          <input class="auth-input" type="email" id="regEmail" placeholder="Masukkan email..." />
-        </div>
-        <div class="auth-field">
-          <label class="auth-label" for="regPassword">Password</label>
-          <div class="auth-input-wrap">
-            <input class="auth-input" type="password" id="regPassword" placeholder="Buat password (min. 6 karakter)..."
-              required />
-            <button type="button" class="auth-eye-btn" id="regEyeBtn"
-              onclick="togglePasswordVisibility('regPassword', 'regEyeBtn')">👁</button>
-          </div>
-        </div>
-        <div class="auth-error hidden" id="registerError"></div>
-        <button type="submit" class="auth-submit-btn" id="registerBtn">
-          <span class="auth-btn-text">Buat Akun</span>
-          <span class="auth-btn-spinner hidden" id="registerSpinner">⏳</span>
-        </button>
-        <p class="auth-switch-text">Sudah punya akun? <a href="#" onclick="switchAuthTab('login')">Masuk</a></p>
-      </form>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!-- APLIKASI UTAMA (tampil setelah login)                              -->
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <div class="app-wrapper hidden" id="appWrapper">
-
-    <!-- HEADER -->
-    <header class="header">
-      <div class="container">
-        <div class="header-inner">
-          <h1 class="brand-title">Pengvisualisasi Datamu</h1>
-          <div class="header-center">
-            <!-- File Selector Dropdown -->
-            <div class="file-selector-wrap" id="fileSelectorWrap">
-              <select class="file-selector" id="fileSelector">
-                <option value="">— Pilih Dataset —</option>
-              </select>
-              <button class="btn-icon" id="btnDeleteFile" title="Hapus dataset ini" style="display:none;">🗑</button>
+    <!-- Main Container Card -->
+    <main class="mobile-container">
+        <!-- SCREEN 1: APOLOGY VIEW -->
+        <section id="apology-view" class="card-screen active">
+            <div class="header-badge">
+                <span class="sparkle">✨</span> Untuk Orang Tersayang <span class="sparkle">✨</span>
             </div>
-          </div>
-          <div class="header-actions">
-            <span class="header-status" id="headerStatus">Belum ada data dimuat</span>
-            <button class="btn-header-reset hidden" id="btnHeaderReset">Reset</button>
-            <!-- User Badge -->
-            <div class="user-badge" id="userBadge">
-              <div class="user-avatar" id="userAvatar">?</div>
-              <span class="user-name" id="userNameDisplay">User</span>
-              <button class="btn-logout" id="btnLogout" title="Keluar">Keluar</button>
+
+            <!-- Heart Photo Frame Container -->
+            <div class="heart-frame-wrapper">
+                <div class="heart-pulse-aura"></div>
+                <div class="heart-frame">
+                    <svg class="heart-clip-svg" viewBox="0 0 100 100">
+                        <defs>
+                            <clipPath id="heart-clip" clipPathUnits="objectBoundingBox">
+                                <path d="M 0.5,0.28 C 0.5,0.28 0.40,0.05 0.22,0.05 C 0.08,0.05 0,0.18 0,0.36 C 0,0.61 0.26,0.78 0.5,0.96 C 0.74,0.78 1,0.61 1,0.36 C 1,0.18 0.92,0.05 0.78,0.05 C 0.60,0.05 0.5,0.28 0.5,0.28 Z"/>
+                            </clipPath>
+                        </defs>
+                    </svg>
+
+                    <!-- Photo Slideshow Inside Heart Shape -->
+                    <div class="heart-photo-slideshow">
+                        <img id="img-photo1" src="image/photo1.jpg" alt="Foto Kenangan 1" class="heart-photo active">
+                        <img id="img-photo2" src="image/photo2.jpg" alt="Foto Kenangan 2" class="heart-photo">
+                        <img id="img-photo3" src="image/photo3.jpg" alt="Foto Kenangan 3" class="heart-photo">
+                        <img id="img-photo4" src="image/photo4.jpg" alt="Foto Kenangan 4" class="heart-photo">
+                    </div>
+                    
+                    <!-- Decorative Heart Overlay Border -->
+                    <div class="heart-border-glow"></div>
+                </div>
+
+                <!-- Slideshow Navigation Dots -->
+                <div class="photo-dots">
+                    <span class="dot active" data-index="0"></span>
+                    <span class="dot" data-index="1"></span>
+                    <span class="dot" data-index="2"></span>
+                    <span class="dot" data-index="3"></span>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </header>
 
-    <!-- DELETE CONFIRM BAR -->
-    <div class="delete-confirm-bar hidden" id="deleteConfirmBar">
-      <span class="delete-confirm-msg" id="deleteConfirmMsg">Hapus dataset ini?</span>
-      <button class="delete-confirm-yes" id="deleteConfirmYes">Ya, Hapus</button>
-      <button class="delete-confirm-no" id="deleteConfirmNo">Batal</button>
-    </div>
+            <!-- Apology Message Content -->
+            <div class="message-box">
+                <h1 class="main-title">Maafin Aku Ya, Sayang... 🥺❤️</h1>
+                <p class="apology-text">
+                    Aku tau aku udah bikin kamu kesal dan kecewa... Dari lubuk hatiku yang paling dalam, aku minta maaf ya sayang. Tanpa kamu, hariku terasa sepi dan kurang berwarna... 🌸✨
+                </p>
+                <p class="apology-subtext">
+                    Kamu mau kan maafin aku hari ini? 🥺👉👈
+                </p>
+            </div>
 
-    <!-- MAIN -->
-    <main class="main">
-      <div class="container">
-
-        <!-- UPLOAD -->
-        <section class="upload-section" id="uploadSection">
-          <div class="upload-card" id="dropZone">
-            <h2 class="upload-title">Unggah Data</h2>
-            <p class="upload-desc">Seret dan lepas file di sini, atau klik tombol di bawah</p>
-            <p class="upload-formats">Format yang didukung: .CSV dan .XLSX</p>
-            <label class="btn-primary" for="csvInput">Pilih File</label>
-            <input type="file" id="csvInput"
-              accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden />
-          </div>
+            <!-- Interactive Choice Buttons -->
+            <div class="button-area" id="button-container">
+                <button id="btn-yes" class="btn btn-primary">
+                    <span class="btn-text">Iya, Dimaafkan ❤️</span>
+                    <span class="btn-glow"></span>
+                </button>
+                
+                <button id="btn-no" class="btn btn-secondary">
+                    <span class="btn-text" id="no-text">Nggak / Belum 😜</span>
+                </button>
+            </div>
         </section>
 
-        <!-- DASHBOARD -->
-        <div class="dashboard hidden" id="dashboard">
-
-          <!-- KPI CARDS -->
-          <section id="kpiSection">
-            <div class="kpi-grid" id="kpiGrid"></div>
-          </section>
-
-          <!-- TABS -->
-          <div class="tabs-wrap">
-            <nav class="tabs" id="tabsNav" role="tablist">
-              <button class="tab active" data-tab="overview" role="tab" aria-selected="true"
-                id="tab-overview">Overview</button>
-              <button class="tab" data-tab="charts" role="tab" aria-selected="false"
-                id="tab-charts">Visualisasi</button>
-              <button class="tab" data-tab="table" role="tab" aria-selected="false" id="tab-table">Data Tabel</button>
-              <button class="tab" data-tab="input" role="tab" aria-selected="false" id="tab-input">Input Data
-                Baru</button>
-              <button class="tab" data-tab="config" role="tab" aria-selected="false"
-                id="tab-config">Konfigurasi</button>
-              <button class="tab" data-tab="history" role="tab" aria-selected="false" id="tab-history">Riwayat</button>
-            </nav>
-            <span class="data-file-info" id="dataFileInfo"></span>
-          </div>
-
-          <!-- TAB: OVERVIEW -->
-          <div class="tab-panel active" id="panel-overview">
-            <div class="inv-charts-row">
-
-              <div class="chart-card" id="invChartStatus">
-                <div class="chart-card-header">
-                  <div>
-                    <h3 class="chart-card-title">Donut Chart</h3>
-                  </div>
-                  <button class="btn-text" id="btnDlStatus">Unduh</button>
-                </div>
-                <div class="chart-canvas-wrap chart-canvas-wrap--donut">
-                  <canvas id="statusChart"></canvas>
-                </div>
-                <div class="no-col-notice hidden" id="noStatusCol">
-                  Pilih kolom Status di tab Konfigurasi
-                </div>
-              </div>
-
-              <div class="chart-card" id="invChartType">
-                <div class="chart-card-header">
-                  <div>
-                    <h3 class="chart-card-title">Bar Chart</h3>
-                  </div>
-                  <button class="btn-text" id="btnDlType">Unduh</button>
-                </div>
-                <div class="chart-canvas-wrap chart-canvas-wrap--hbar">
-                  <canvas id="typeChart"></canvas>
-                </div>
-                <div class="no-col-notice hidden" id="noTypeCol">
-                  Pilih kolom Tipe di tab Konfigurasi
-                </div>
-              </div>
-
+        <!-- SCREEN 2: THANK YOU VIEW (Initially Hidden) -->
+        <section id="thankyou-view" class="card-screen hidden">
+            <div class="success-heart-header">
+                <div class="big-beating-heart">💖</div>
             </div>
 
-            <div class="chart-card" id="invChartLocation">
-              <div class="chart-card-header">
-                <div>
-                  <h3 class="chart-card-title">Column Chart</h3>
+            <div class="thankyou-content">
+                <h1 class="thankyou-title">Terima Kasih Banyak, Sayang! 🥰✨</h1>
+                <p class="thankyou-subtitle">
+                    Makasih ya udah mau maafin aku! Senyum kamu itu hal terindah buat aku. Janji deh aku bakal jadi pasangan yang lebih baik lagi dan bikin kamu bahagia tiap hari! 🌹
+                </p>
+
+                <!-- Animated Love Letter Box -->
+                <div class="love-letter-card">
+                    <div class="letter-stamp">💌</div>
+                    <h2 class="letter-header">Janji Manisku Buat Kamu:</h2>
+                    <ul class="letter-list">
+                        <li>💖 Selalu dengerin cerita kamu kapan aja</li>
+                        <li>🌸 Nggak bakal bikin kamu sedih lagi</li>
+                        <li>🍦 Siap nemenin kamu jajan kapan pun</li>
+                        <li>✨ Sayang sama kamu selamanya!</li>
+                    </ul>
                 </div>
-                <button class="btn-text" id="btnDlLocation">Unduh</button>
-              </div>
-              <div class="chart-canvas-wrap" style="height:300px;">
-                <canvas id="locationChart"></canvas>
-              </div>
-              <div class="no-col-notice hidden" id="noLocationCol">
-                Pilih kolom Lokasi di tab Konfigurasi
-              </div>
+
+                <!-- Heart Photo Grid Showcase -->
+                <h3 class="gallery-title">Momen Indah Bersamamu 📸✨</h3>
+                <div class="photo-grid">
+                    <div class="grid-card"><img id="grid-img-1" src="image/photo1.jpg" alt="Memory 1"></div>
+                    <div class="grid-card"><img id="grid-img-2" src="image/photo2.jpg" alt="Memory 2"></div>
+                    <div class="grid-card"><img id="grid-img-3" src="image/photo3.jpg" alt="Memory 3"></div>
+                    <div class="grid-card"><img id="grid-img-4" src="image/photo4.jpg" alt="Memory 4"></div>
+                </div>
+
+                <div class="love-footer">
+                    <p class="footer-text">I Love You So Much! ❤️</p>
+                    <button id="btn-replay" class="btn btn-outline">
+                        <span>Lihat Pesan Lagi 🔄</span>
+                    </button>
+                </div>
             </div>
-          </div>
-
-          <!-- TAB: VISUALISASI -->
-          <div class="tab-panel hidden" id="panel-charts">
-
-            <div class="control-card" id="controlSection">
-              <h3 class="control-title">Konfigurasi Grafik</h3>
-              <div class="control-grid">
-                <div class="control-field">
-                  <label class="field-label" for="labelCol">Kolom Label (Sumbu X)</label>
-                  <select class="field-select" id="labelCol"></select>
-                </div>
-                <div class="control-field">
-                  <label class="field-label" for="valueCol">Kolom Nilai (Sumbu Y)</label>
-                  <select class="field-select" id="valueCol"></select>
-                </div>
-                <div class="control-field">
-                  <label class="field-label" for="chartType">Tipe Grafik</label>
-                  <select class="field-select" id="chartType">
-                    <option value="all">Tampilkan Semua</option>
-                    <option value="bar">Bar Chart</option>
-                    <option value="line">Line Chart</option>
-                    <option value="pie">Pie Chart</option>
-                  </select>
-                </div>
-                <div class="control-actions">
-                  <button class="btn-primary" id="btnRender">Buat Grafik</button>
-                  <button class="btn-secondary" id="btnReset">Reset</button>
-                </div>
-              </div>
-            </div>
-
-            <section id="statsSection">
-              <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                  <div class="stat-label">Total Baris</div>
-                  <div class="stat-value" id="statRows">-</div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-label">Total Kolom</div>
-                  <div class="stat-value" id="statCols">-</div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-label">Nilai Tertinggi</div>
-                  <div class="stat-value" id="statMax">-</div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-label">Nilai Terendah</div>
-                  <div class="stat-value" id="statMin">-</div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-label">Rata-rata</div>
-                  <div class="stat-value" id="statAvg">-</div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-label">Total</div>
-                  <div class="stat-value" id="statSum">-</div>
-                </div>
-              </div>
-            </section>
-
-            <section class="charts-area hidden" id="chartsArea">
-              <div class="chart-row" id="rowBarLine">
-                <div class="chart-card" id="wrapBar">
-                  <div class="chart-card-header">
-                    <div>
-                      <h3 class="chart-card-title">Bar Chart</h3>
-                      <p class="chart-card-desc">Perbandingan nilai antar kategori</p>
-                    </div>
-                    <button class="btn-text" id="btnDlBar">Unduh</button>
-                  </div>
-                  <div class="chart-canvas-wrap">
-                    <canvas id="barChart"></canvas>
-                  </div>
-                </div>
-                <div class="chart-card" id="wrapLine">
-                  <div class="chart-card-header">
-                    <div>
-                      <h3 class="chart-card-title">Line Chart</h3>
-                      <p class="chart-card-desc">Tren data dari waktu ke waktu</p>
-                    </div>
-                    <button class="btn-text" id="btnDlLine">Unduh</button>
-                  </div>
-                  <div class="chart-canvas-wrap">
-                    <canvas id="lineChart"></canvas>
-                  </div>
-                </div>
-              </div>
-              <div class="chart-row chart-row-single" id="rowPie">
-                <div class="chart-card chart-card-pie" id="wrapPie">
-                  <div class="chart-card-header">
-                    <div>
-                      <h3 class="chart-card-title">Pie Chart</h3>
-                      <p class="chart-card-desc">Proporsi setiap kategori terhadap total</p>
-                    </div>
-                    <button class="btn-text" id="btnDlPie">Unduh</button>
-                  </div>
-                  <div class="chart-canvas-wrap chart-canvas-wrap--pie">
-                    <canvas id="pieChart"></canvas>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </div>
-
-          <!-- TAB: DATA TABEL -->
-          <div class="tab-panel hidden" id="panel-table">
-            <div class="table-toolbar">
-              <div class="table-toolbar-left">
-                <h3 class="table-title">Data Inventaris</h3>
-                <span class="table-badge" id="tableBadge">0 baris</span>
-              </div>
-              <div class="table-toolbar-right">
-                <input type="text" class="search-input" id="tableSearch" placeholder="Cari data..." />
-                <button class="btn-danger hidden" id="btnDeleteSelected">Hapus Terpilih (0)</button>
-                <button class="btn-secondary" id="btnToggleEditTable">Edit Data</button>
-                <button class="btn-import" id="btnImportFile" title="Import file baru ke dataset ini">
-                  Import File
-                </button>
-                <button class="btn-secondary" id="btnExportCSV">Export CSV</button>
-              </div>
-            </div>
-            <div class="table-edit-notice hidden" id="tableEditNotice">
-              <span><strong>Mode Edit</strong> — Klik sel untuk mengedit langsung</span>
-            </div>
-            <div class="table-card">
-              <div class="table-scroll">
-                <table class="data-table" id="dataTable">
-                  <thead id="tableHead"></thead>
-                  <tbody id="tableBody"></tbody>
-                </table>
-              </div>
-              <div class="table-pagination" id="tablePagination">
-                <span class="pagination-info" id="paginationInfo"></span>
-                <div class="pagination-btns">
-                  <button class="btn-page" id="btnPrevPage" disabled>Sebelumnya</button>
-                  <div class="page-nums" id="pageNums"></div>
-                  <button class="btn-page" id="btnNextPage">Berikutnya</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- TAB: KONFIGURASI -->
-          <div class="tab-panel hidden" id="panel-config">
-            <div class="config-grid">
-              <div class="config-card">
-                <div class="config-card-header">
-                  <h3 class="config-card-title">Pemetaan Kolom Inventaris</h3>
-                  <p class="config-card-desc">Tentukan kolom mana yang mewakili data inventaris jaringan</p>
-                </div>
-                <div class="config-fields">
-                  <div class="config-field">
-                    <label class="field-label" for="cfgColDevice">Nama Perangkat / Hostname</label>
-                    <select class="field-select" id="cfgColDevice">
-                      <option value="">— Tidak dipetakan —</option>
-                    </select>
-                  </div>
-                  <div class="config-field">
-                    <label class="field-label" for="cfgColStatus">Status Perangkat</label>
-                    <select class="field-select" id="cfgColStatus">
-                      <option value="">— Tidak dipetakan —</option>
-                    </select>
-                  </div>
-                  <div class="config-field">
-                    <label class="field-label" for="cfgColType">Tipe / Kategori Perangkat</label>
-                    <select class="field-select" id="cfgColType">
-                      <option value="">— Tidak dipetakan —</option>
-                    </select>
-                  </div>
-                  <div class="config-field">
-                    <label class="field-label" for="cfgColLocation">Lokasi / Site</label>
-                    <select class="field-select" id="cfgColLocation">
-                      <option value="">— Tidak dipetakan —</option>
-                    </select>
-                  </div>
-                  <div class="config-field">
-                    <label class="field-label" for="cfgColIP">Alamat IP</label>
-                    <select class="field-select" id="cfgColIP">
-                      <option value="">— Tidak dipetakan —</option>
-                    </select>
-                  </div>
-                  <div class="config-field">
-                    <label class="field-label" for="cfgColVendor">Vendor / Merek</label>
-                    <select class="field-select" id="cfgColVendor">
-                      <option value="">— Tidak dipetakan —</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="config-actions">
-                  <button class="btn-primary" id="btnApplyConfig">Terapkan Konfigurasi</button>
-                  <button class="btn-secondary" id="btnAutoDetect">Auto-Deteksi</button>
-                </div>
-              </div>
-
-              <div class="config-card">
-                <div class="config-card-header">
-                  <h3 class="config-card-title">Informasi File</h3>
-                  <p class="config-card-desc">Detail file yang sedang dimuat</p>
-                </div>
-                <div class="file-info-list" id="fileInfoList"></div>
-                <div class="column-list-wrap">
-                  <h4 class="col-list-title">Kolom Tersedia</h4>
-                  <div class="column-chips" id="columnChips"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- TAB: INPUT DATA BARU -->
-          <div class="tab-panel hidden" id="panel-input">
-            <div class="input-panel">
-              <div class="input-card">
-                <div class="input-card-header">
-                  <h3 class="input-card-title">Tambah Data Baru</h3>
-                  <p class="input-card-desc">Isi form berikut untuk menambahkan baris baru ke dalam data yang sedang
-                    dimuat</p>
-                </div>
-                <form id="inputDataForm" class="input-form" autocomplete="off">
-                  <div class="input-fields-grid" id="inputFieldsGrid">
-                    <!-- generated dynamically -->
-                  </div>
-                  <div class="input-form-actions">
-                    <button type="submit" class="btn-primary" id="btnSubmitInput">Simpan Data</button>
-                    <button type="button" class="btn-secondary" id="btnClearInput">Kosongkan Form</button>
-                  </div>
-                </form>
-              </div>
-
-              <!-- Recent entries log -->
-              <div class="input-log-card" id="inputLogCard">
-                <div class="input-card-header">
-                  <h3 class="input-card-title">Data Baru Ditambahkan</h3>
-                  <p class="input-card-desc" id="inputLogCount">Belum ada data yang ditambahkan</p>
-                </div>
-                <div class="input-log-list" id="inputLogList"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- TAB: RIWAYAT INPUTAN -->
-          <div class="tab-panel hidden" id="panel-history">
-            <div class="history-toolbar">
-              <div class="history-toolbar-left">
-                <h3 class="history-title">Riwayat Inputan</h3>
-                <span class="history-total" id="historyTotal">0 aktivitas</span>
-              </div>
-              <button class="btn-secondary btn-sm" id="btnRefreshHistory">Muat Ulang</button>
-            </div>
-            <div class="history-card">
-              <div class="history-empty hidden" id="historyEmpty">
-                <p>Belum ada aktivitas yang tercatat.</p>
-              </div>
-              <div class="history-table-wrap" id="historyTableWrap">
-                <table class="history-table" id="historyTable">
-                  <thead>
-                    <tr>
-                      <th>Waktu</th>
-                      <th>Aksi</th>
-                      <th>Dataset</th>
-                      <th>Keterangan</th>
-                      <th class="col-rows">Baris</th>
-                    </tr>
-                  </thead>
-                  <tbody id="historyBody"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-        </div><!-- /dashboard -->
-
-      </div>
+        </section>
     </main>
 
-    <!-- FOOTER -->
-    <footer class="footer">
-      <div class="container">
-        <p>Pengvisualisasi Datamu &copy; 2024</p>
-      </div>
-    </footer>
-
-  </div><!-- /appWrapper -->
-
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!-- MODAL: IMPORT FILE                                                 -->
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <div class="modal-overlay hidden" id="importModalOverlay">
-    <div class="modal" id="importModal">
-      <div class="modal-header">
-        <h2 class="modal-title">Import File ke Dataset</h2>
-        <button class="modal-close" id="importModalClose" onclick="closeImportModal()">×</button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-desc">Pilih file CSV atau XLSX untuk diimport ke dataset yang sedang aktif.</p>
-
-        <div class="modal-upload-zone" id="importDropZone">
-          <div class="modal-upload-icon">📂</div>
-          <p>Seret file ke sini atau klik untuk memilih</p>
-          <label class="btn-secondary" for="importFileInput">Pilih File</label>
-          <input type="file" id="importFileInput"
-            accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden />
-        </div>
-
-        <div class="import-file-preview hidden" id="importFilePreview">
-          <div class="import-file-icon">📄</div>
-          <div class="import-file-info">
-            <span class="import-file-name" id="importFileName">—</span>
-            <span class="import-file-size" id="importFileSize">—</span>
-          </div>
-          <button class="btn-icon-sm" onclick="clearImportFile()">×</button>
-        </div>
-
-        <div class="import-mode-section">
-          <h4 class="import-mode-title">Mode Import</h4>
-          <div class="import-mode-options">
-            <label class="import-mode-option" id="modeAppendLabel">
-              <input type="radio" name="importMode" value="append" id="modeAppend" checked />
-              <div class="import-mode-card">
-                <div class="import-mode-info">
-                  <strong>Gabung (Append)</strong>
-                  <span>Tambahkan data baru ke bawah data yang sudah ada</span>
-                </div>
-              </div>
-            </label>
-            <label class="import-mode-option" id="modeReplaceLabel">
-              <input type="radio" name="importMode" value="replace" id="modeReplace" />
-              <div class="import-mode-card">
-                <div class="import-mode-info">
-                  <strong>Timpa (Replace)</strong>
-                  <span>Hapus semua data lama, ganti dengan data baru</span>
-                </div>
-              </div>
-            </label>
-          </div>
-
-          <!-- Opsi Deduplikasi (hanya tampil saat mode Append) -->
-          <div class="dedup-option" id="dedupOption">
-            <label class="dedup-label">
-              <input type="checkbox" id="chkSkipDuplicates" checked />
-              <span class="dedup-text">
-                <strong>Lewati baris duplikat</strong>
-                <span>Baris yang sudah ada di dataset tidak akan ditambahkan lagi</span>
-              </span>
-            </label>
-          </div>
-        </div>
-
-        <div class="modal-error hidden" id="importError"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeImportModal()">Batal</button>
-        <button class="btn-primary" id="btnConfirmImport" onclick="confirmImport()">
-          <span id="importBtnText">Import</span>
-          <span class="hidden" id="importBtnSpinner">Mengimpor...</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- TOAST -->
-  <div class="toast" id="toast"></div>
-
-  <!-- LOADING -->
-  <div class="loading-overlay hidden" id="loadingOverlay">
-    <div class="loading-content">
-      <div class="loading-spinner"></div>
-      <p class="loading-text">Memproses file...</p>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
+    <script src="images_data.js"></script>
+    <script src="script.js"></script>
 </body>
-
 </html>
