@@ -1,5 +1,9 @@
 {
   "name": "website-permintaan-maaf-romantis",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "start": "npx serve . -l 3000",
+    "build": "echo static"
+  }
 }
