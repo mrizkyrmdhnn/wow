@@ -1,8 +1,5 @@
 {
   "name": "website-permintaan-maaf-romantis",
   "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "build": "echo 'No build step required for static site'"
-  }
+  "private": true
 }
